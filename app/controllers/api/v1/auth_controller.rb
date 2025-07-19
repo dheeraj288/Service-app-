@@ -5,13 +5,20 @@ module Api
         :shop_signup, :shop_login, :technician_signup, :technician_login,
         :customer_signup, :customer_login, :refresh
       ]
+
       def shop_signup
-        user = User.new(user_params.merge(role: 'shop_admin'))
-        if user.save
-          render_token_response(user, :created)
-        else
-          render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
+        ActiveRecord::Base.transaction do
+          shop = Shop.create!(name: params[:user][:shop_name])
+          user = User.new(user_params.merge(role: 'shop_admin', shop_id: shop.id))
+
+          if user.save
+            render_token_response(user, :created)
+          else
+            raise ActiveRecord::Rollback
+          end
         end
+      rescue ActiveRecord::RecordInvalid => e
+        render json: { error: e.message }, status: :unprocessable_entity
       end
 
       def shop_login
@@ -69,7 +76,7 @@ module Api
       def user_params
         params.require(:user).permit(
           :name, :email, :password, :password_confirmation,
-          :phone, :address, :profile_image_url, :shop_id, :shop_code
+          :phone, :address, :profile_image_url, :shop_id, :shop_code, :shop_name
         )
       end
 

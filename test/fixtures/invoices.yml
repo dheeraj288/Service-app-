@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  time_ticket: one
+  invoice_number: MyString
+  total_amount: 9.99
+  pdf_url: MyString
+  status: MyString
+
+two:
+  time_ticket: two
+  invoice_number: MyString
+  total_amount: 9.99
+  pdf_url: MyString
+  status: MyString

@@ -74,3 +74,5 @@ gem 'jwt'
 group :development, :test do
   gem 'pry'
 end
+gem 'prawn'
+gem 'prawn-table'

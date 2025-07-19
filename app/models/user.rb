@@ -1,27 +1,34 @@
 class User < ApplicationRecord
   has_secure_password
 
+  # ─── Associations ─────────────────────────────────────────────────────
   belongs_to :shop, optional: true
+  has_many :created_service_requests, class_name: 'ServiceRequest', foreign_key: :customer_id
+  has_many :assigned_service_requests, class_name: 'ServiceRequest', foreign_key: :technician_id
 
-  ROLES = %w[he_admin shop_admin technician customer]
+  # ─── Constants ────────────────────────────────────────────────────────
+  ROLES = %w[he_admin shop_admin technician customer].freeze
 
-  validates :role, inclusion: { in: ROLES }
+  # ─── Validations ──────────────────────────────────────────────────────
   validates :email, presence: true, uniqueness: true
+  validates :role, inclusion: { in: ROLES }
+  validate :shop_required_for_technician_or_customer
 
+  # ─── Virtual Attributes ───────────────────────────────────────────────
   attr_accessor :shop_code
 
+  # ─── Callbacks ────────────────────────────────────────────────────────
   before_validation :assign_shop_from_code, if: -> { shop_code.present? }
-  validate :shop_required_for_roles
 
-  # ─── Role Helpers ─────────────────────────────────────────────────────────────
-  def he_admin?      = role == 'he_admin'
-  def shop_admin?    = role == 'shop_admin'
-  def technician?    = role == 'technician'
-  def customer?      = role == 'customer'
+  # ─── Role Helpers ─────────────────────────────────────────────────────
+  def he_admin?     = role == 'he_admin'
+  def shop_admin?   = role == 'shop_admin'
+  def technician?   = role == 'technician'
+  def customer?     = role == 'customer'
 
   private
 
-  def shop_required_for_roles
+  def shop_required_for_technician_or_customer
     if %w[technician customer].include?(role) && shop_id.blank?
       errors.add(:shop_id, 'is required for this role')
     end

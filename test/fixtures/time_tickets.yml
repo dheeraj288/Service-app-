@@ -1,0 +1,23 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  service_request: one
+  technician_id: 1
+  start_time: 2025-07-19 08:08:42
+  end_time: 2025-07-19 08:08:42
+  total_hours: 9.99
+  status: MyString
+  notes: MyText
+  approved_at: 2025-07-19 08:08:42
+  approved_by: 1
+
+two:
+  service_request: two
+  technician_id: 1
+  start_time: 2025-07-19 08:08:42
+  end_time: 2025-07-19 08:08:42
+  total_hours: 9.99
+  status: MyString
+  notes: MyText
+  approved_at: 2025-07-19 08:08:42
+  approved_by: 1
