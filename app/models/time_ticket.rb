@@ -1,7 +1,14 @@
 class TimeTicket < ApplicationRecord
   belongs_to :service_request
-  belongs_to :technician, class_name: 'User', foreign_key: :technician_id, optional: true
-  belongs_to :approver, class_name: 'User', optional: true
+  # app/models/time_ticket.rb
+  has_one :quote, dependent: :destroy
+
+
+  belongs_to :technician, class_name: 'User', foreign_key: :technician_id
+  # app/models/time_ticket.rb
+  belongs_to :rejected_by_user, class_name: 'User', foreign_key: 'rejected_by', optional: true
+  belongs_to :approved_by_user, class_name: 'User', foreign_key: 'approved_by', optional: true
+
 
   validates :start_time, :end_time, :total_hours, presence: true
 

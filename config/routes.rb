@@ -1,50 +1,84 @@
 Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
+      # Authentication
+      post   '/auth/shop_signup',        to: 'auth#shop_signup'
+      post   '/auth/shop_login',         to: 'auth#shop_login'
+      post   '/auth/technician_signup',  to: 'auth#technician_signup'
+      post   '/auth/technician_login',   to: 'auth#technician_login'
+      post   '/auth/customer_signup',    to: 'auth#customer_signup'
+      post   '/auth/customer_login',     to: 'auth#customer_login'
+      post   '/auth/refresh',            to: 'auth#refresh'
+      delete '/auth/logout',             to: 'auth#logout'
 
-      # === 🔐 Authentication ===
-      post   '/auth/shop_signup',        to: 'auth#shop_signup',       as: :shop_signup
-      post   '/auth/shop_login',         to: 'auth#shop_login',        as: :shop_login
-      post   '/auth/technician_signup',  to: 'auth#technician_signup', as: :technician_signup
-      post   '/auth/technician_login',   to: 'auth#technician_login',  as: :technician_login
-      post   '/auth/customer_signup',    to: 'auth#customer_signup',   as: :customer_signup
-      post   '/auth/customer_login',     to: 'auth#customer_login',    as: :customer_login
-      post   '/auth/refresh',            to: 'auth#refresh',           as: :refresh_token
-      delete '/auth/logout',             to: 'auth#logout',            as: :logout
-
-      get    '/profile',                 to: 'users#profile',          as: :user_profile
+      # User profile & management
+      get    '/profile',                 to: 'users#profile'
       resources :users, only: [:update, :destroy]
 
+      # Shops and shop-specific users
       resources :shops do
-        resources :users, only: [:index], as: :shop_users
+        resources :users, only: [:index]
       end
 
+      # Customer Onboarding
+      # (handled under auth#customer_signup with building/elevators nested)
+
+      # Service Requests
       resources :service_requests, only: [:create, :destroy] do
         collection do
-          get :my_requests,       as: :my_service_requests       # Customer
-          get :shop_requests,     as: :shop_service_requests     # Shop Admin
+          get :my_requests
+          get :shop_requests
         end
-
         member do
-          put :assign_technician, as: :assign_service_technician # Shop Admin
-          put :resolve,           as: :resolve_service_request    # Technician
+          put :assign_technician
+          put :resolve
         end
       end
 
-      # === ⏱️ Time Tickets ===
+      # Time Tickets
+      post   '/time_tickets', to: 'time_tickets#create'
       resources :time_tickets, only: [] do
         collection do
-          get :shop_tickets, as: :shop_time_tickets              # Shop Admin
+          get :shop_tickets
         end
         member do
-          put :approve, as: :approve_time_ticket                 # Shop Admin
+          put :approve
+          put :reject
+          get :invoice_pdf, defaults: { format: 'pdf' }
         end
       end
-      post '/time_tickets', to: 'time_tickets#create', as: :create_time_ticket # Technician
 
-      post 'invoices/generate', to: 'invoices#generate'
-      get 'invoices/:id/download', to: 'invoices#download'
+      # Invoices
+      post '/invoices/generate', to: 'invoices#generate'
+      get  '/invoices/:id/download', to: 'invoices#download'
 
+      # Quotes
+      resources :time_tickets, only: [] do
+        resources :quotes, only: [:create]
+      end
+      resources :quotes, only: [:show, :update] do
+        member do
+          patch :approve
+          patch :reject
+        end
+      end
+      resources :preventive_maintenances, only: [:create, :index, :show] do
+        collection do
+          get :my
+        end
+        member do
+          patch :assign,     to: 'preventive_maintenances#assign_technician'
+          patch :complete,   to: 'preventive_maintenances#complete'
+          patch :cancel,     to: 'preventive_maintenances#cancel'
+        end
+      end
+      resources :scheduled_repairs, only: [:create] do
+      member do
+        post :assign_technician
+        post :start
+        post :complete
+      end
+    end
     end
   end
 end

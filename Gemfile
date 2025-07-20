@@ -76,3 +76,7 @@ group :development, :test do
 end
 gem 'prawn'
 gem 'prawn-table'
+gem 'wicked_pdf'
+gem 'wkhtmltopdf-binary'
+# gem 'quickbooks-ruby'
+# gem 'oauth2'

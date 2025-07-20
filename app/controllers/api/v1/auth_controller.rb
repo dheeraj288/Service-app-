@@ -2,36 +2,36 @@ module Api
   module V1
     class AuthController < ApplicationController
       skip_before_action :authorize_request, only: [
-        :shop_signup, :shop_login, :technician_signup, :technician_login,
-        :customer_signup, :customer_login, :refresh
+        :shop_signup, :shop_login, :technician_login, :customer_signup, :customer_login, :refresh
       ]
 
       def shop_signup
-        ActiveRecord::Base.transaction do
-          shop = Shop.create!(name: params[:user][:shop_name])
-          user = User.new(user_params.merge(role: 'shop_admin', shop_id: shop.id))
+        role = params.dig(:user, :role)
 
-          if user.save
-            render_token_response(user, :created)
+        unless %w[shop_admin he_admin].include?(role)
+          return render json: { error: 'Only shop_admin and he_admin roles are allowed' }, status: :forbidden
+        end
+
+        user = nil
+        ActiveRecord::Base.transaction do
+          if role == 'shop_admin'
+            shop = Shop.create!(name: params.dig(:user, :shop_name))
+            user = build_user(role: role, shop_id: shop.id)
+            user.save!
           else
-            raise ActiveRecord::Rollback
+            user = build_user(role: role)
+            user.save!
           end
         end
+
+        render_token_response(user, :created)
+
       rescue ActiveRecord::RecordInvalid => e
         render json: { error: e.message }, status: :unprocessable_entity
       end
 
       def shop_login
-        login_user(role_scope: %w[he_admin shop_admin])
-      end
-
-      def technician_signup
-        user = User.new(user_params.merge(role: 'technician'))
-        if user.save
-          render_token_response(user, :created)
-        else
-          render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
-        end
+        login_user(role_scope: %w[shop_admin he_admin])
       end
 
       def technician_login
@@ -39,15 +39,37 @@ module Api
       end
 
       def customer_signup
-        shop = Shop.find_by(code: params[:user][:shop_code])
-        return render json: { error: 'Invalid shop code' }, status: :unprocessable_entity unless shop
+        user = nil
 
-        user = User.new(user_params.merge(role: 'customer', shop_id: shop.id))
-        if user.save
-          render_token_response(user, :created)
-        else
-          render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
+        ActiveRecord::Base.transaction do
+          shop = Shop.find_by(code: params.dig(:user, :shop_code))
+          raise ActiveRecord::RecordInvalid.new(Shop.new), 'Invalid shop code' unless shop
+
+          user = build_user(role: 'customer', shop_id: shop.id)
+          user.save!
+
+          (params.dig(:user, :buildings) || []).each do |building_params|
+            building = Building.create!(
+              name: building_params[:name],
+              address: building_params[:address],
+              customer_id: user.id
+            )
+
+            (building_params[:elevators] || []).each do |elevator_params|
+              Elevator.create!(
+                identifier: elevator_params[:identifier],
+                elevator_type: elevator_params[:elevator_type] || elevator_params[:type],
+                status: elevator_params[:status],
+                building_id: building.id
+              )
+            end
+          end
         end
+
+        render_token_response(user, :created)
+
+      rescue ActiveRecord::RecordInvalid => e
+        render json: { error: e.message }, status: :unprocessable_entity
       end
 
       def customer_login
@@ -75,9 +97,19 @@ module Api
 
       def user_params
         params.require(:user).permit(
-          :name, :email, :password, :password_confirmation,
-          :phone, :address, :profile_image_url, :shop_id, :shop_code, :shop_name
+          :name, :email, :password, :password_confirmation, :phone,
+          :address, :role, :profile_image_url, :shop_id, :shop_code, :shop_name,
+          buildings: [
+            :name, :address,
+            elevators: [:identifier, :elevator_type, :type, :status]
+          ]
         )
+      end
+
+      def build_user(role:, shop_id: nil)
+        attrs = user_params.except(:shop_code, :buildings, :shop_name).merge(role: role)
+        attrs[:shop_id] = shop_id if shop_id
+        User.new(attrs)
       end
 
       def render_token_response(user, status)
@@ -85,7 +117,14 @@ module Api
         render json: {
           access_token: tokens[:access_token],
           refresh_token: tokens[:refresh_token],
-          user: user.as_json(except: [:password_digest])
+          user: user.as_json(
+            except: [:password_digest],
+            include: {
+              buildings: {
+                include: :elevators
+              }
+            }
+          )
         }, status: status
       end
 
@@ -99,8 +138,8 @@ module Api
       def login_user(role_scope:)
         email = params.dig(:user, :email)
         password = params.dig(:user, :password)
-        user = User.find_by(email: email)
 
+        user = User.find_by(email: email)
         if user&.authenticate(password) && role_scope.include?(user.role)
           render_token_response(user, :ok)
         else

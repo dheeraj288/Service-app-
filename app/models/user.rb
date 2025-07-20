@@ -6,6 +6,16 @@ class User < ApplicationRecord
   has_many :created_service_requests, class_name: 'ServiceRequest', foreign_key: :customer_id
   has_many :assigned_service_requests, class_name: 'ServiceRequest', foreign_key: :technician_id
 
+  has_many :preventive_maintenances_as_customer, class_name: 'PreventiveMaintenance', foreign_key: 'customer_id'
+  has_many :preventive_maintenances_as_technician, class_name: 'PreventiveMaintenance', foreign_key: 'technician_id'
+
+    # app/models/user.rb
+  has_many :buildings, foreign_key: :customer_id, dependent: :destroy
+  accepts_nested_attributes_for :buildings
+
+  has_many :service_requests
+
+
   # ─── Constants ────────────────────────────────────────────────────────
   ROLES = %w[he_admin shop_admin technician customer].freeze
 

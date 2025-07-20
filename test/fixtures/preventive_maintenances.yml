@@ -1,0 +1,37 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  shop: one
+  customer: one
+  technician: one
+  schedule_date: 2025-07-20
+  frequency: MyString
+  status: MyString
+  rails: MyString
+  generate: MyString
+  model: MyString
+  PreventiveMaintenance: MyString
+  shop: one
+  customer_id: 1
+  technician_id: 1
+  schedule_date: 2025-07-20
+  frequency: MyString
+  status: MyString
+
+two:
+  shop: two
+  customer: two
+  technician: two
+  schedule_date: 2025-07-20
+  frequency: MyString
+  status: MyString
+  rails: MyString
+  generate: MyString
+  model: MyString
+  PreventiveMaintenance: MyString
+  shop: two
+  customer_id: 1
+  technician_id: 1
+  schedule_date: 2025-07-20
+  frequency: MyString
+  status: MyString

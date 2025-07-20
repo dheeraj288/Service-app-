@@ -8,9 +8,11 @@ class ServiceRequest < ApplicationRecord
   enum status: {
     pending:  'pending',
     assigned: 'assigned',
-    resolved: 'resolved'
-  }
+    in_progress: 'in_progress',
+    completed: 'completed',
+    rejected: 'rejected'
 
+  }
   # ─── Validations ──────────────────────────────────────────────────────
   validates :title, :description, :customer_id, :shop_id, :status, presence: true
   validates :status, inclusion: { in: statuses.keys }

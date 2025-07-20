@@ -50,6 +50,7 @@ class Api::V1::ServiceRequestsController < ApplicationController
 
   # PUT /api/v1/service_requests/:id/assign_technician
   def assign_technician
+    debugger
     technician = User.find_by(
       id: params[:technician_id],
       role: 'technician',
@@ -76,14 +77,15 @@ class Api::V1::ServiceRequestsController < ApplicationController
 
   # PUT /api/v1/service_requests/:id/resolve
   def resolve
+    debugger
     unless @service_request.technician_id == current_user.id
-      return render json: { error: 'Not authorized to resolve this request' }, status: :forbidden
+      return render json: { error: 'Not authorized to complete this request' }, status: :forbidden
     end
 
-    if @service_request.update(status: 'resolved')
-      render json: { success: true, message: 'Request resolved successfully' }
+    if @service_request.update(status: 'completed')
+      render json: { success: true, message: 'Request complete successfully' }
     else
-      render json: { error: 'Failed to resolve request', details: @service_request.errors.full_messages }, status: :unprocessable_entity
+      render json: { error: 'Failed to complete request', details: @service_request.errors.full_messages }, status: :unprocessable_entity
     end
   end
 

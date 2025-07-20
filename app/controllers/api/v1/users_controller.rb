@@ -37,9 +37,15 @@ module Api
 
       def user_params
         params.require(:user).permit(
-          :name, :email, :phone, :address, :profile_image_url, :password, :password_confirmation
+          :name, :email, :password, :password_confirmation,
+          :phone, :address, :role, :profile_image_url, :shop_id, :shop_code,
+          buildings: [
+            :name, :address,
+            elevators: [:identifier, :elevator_type, :status]
+          ]
         )
       end
+
     end
   end
 end

@@ -10,9 +10,27 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_19_032505) do
+ActiveRecord::Schema[7.1].define(version: 2025_07_20_161338) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "buildings", force: :cascade do |t|
+    t.string "name"
+    t.string "address"
+    t.integer "customer_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "elevators", force: :cascade do |t|
+    t.string "identifier"
+    t.string "elevator_type"
+    t.integer "status", default: 0
+    t.bigint "building_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["building_id"], name: "index_elevators_on_building_id"
+  end
 
   create_table "invoices", force: :cascade do |t|
     t.bigint "time_ticket_id", null: false
@@ -23,6 +41,46 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_19_032505) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["time_ticket_id"], name: "index_invoices_on_time_ticket_id"
+  end
+
+  create_table "preventive_maintenances", force: :cascade do |t|
+    t.bigint "shop_id", null: false
+    t.integer "customer_id"
+    t.integer "technician_id"
+    t.date "schedule_date"
+    t.string "frequency"
+    t.string "status"
+    t.date "next_run_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["shop_id"], name: "index_preventive_maintenances_on_shop_id"
+  end
+
+  create_table "quotes", force: :cascade do |t|
+    t.bigint "time_ticket_id", null: false
+    t.integer "shop_admin_id"
+    t.text "description"
+    t.decimal "amount"
+    t.string "status"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["time_ticket_id"], name: "index_quotes_on_time_ticket_id"
+  end
+
+  create_table "scheduled_repairs", force: :cascade do |t|
+    t.bigint "shop_id"
+    t.bigint "building_id"
+    t.bigint "elevator_id"
+    t.integer "customer_id"
+    t.integer "technician_id"
+    t.text "description"
+    t.datetime "scheduled_for"
+    t.string "status", default: "pending"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["building_id"], name: "index_scheduled_repairs_on_building_id"
+    t.index ["elevator_id"], name: "index_scheduled_repairs_on_elevator_id"
+    t.index ["shop_id"], name: "index_scheduled_repairs_on_shop_id"
   end
 
   create_table "service_requests", force: :cascade do |t|
@@ -59,6 +117,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_19_032505) do
     t.integer "approved_by"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "rejected_at"
+    t.integer "rejected_by"
+    t.text "rejection_reason"
     t.index ["service_request_id"], name: "index_time_tickets_on_service_request_id"
   end
 
@@ -75,7 +136,13 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_19_032505) do
     t.integer "shop_id"
   end
 
+  add_foreign_key "elevators", "buildings"
   add_foreign_key "invoices", "time_tickets"
+  add_foreign_key "preventive_maintenances", "shops"
+  add_foreign_key "quotes", "time_tickets"
+  add_foreign_key "scheduled_repairs", "buildings"
+  add_foreign_key "scheduled_repairs", "elevators"
+  add_foreign_key "scheduled_repairs", "shops"
   add_foreign_key "service_requests", "shops"
   add_foreign_key "time_tickets", "service_requests"
 end
