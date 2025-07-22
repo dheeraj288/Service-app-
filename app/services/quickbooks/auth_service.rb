@@ -46,7 +46,8 @@ module Quickbooks
 
       {
         access_token: token.token,
-        refresh_token: token.refresh_token
+        refresh_token: token.refresh_token,
+        realm_id: realm_id
       }
     end
 

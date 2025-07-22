@@ -16,7 +16,8 @@ module Api
         render json: {
           message: 'QuickBooks credentials updated successfully',
           access_token: tokens[:access_token],
-          refresh_token: tokens[:refresh_token]
+          refresh_token: tokens[:refresh_token],
+          realm_id: tokens[:realm_id]
         }
       end
 
