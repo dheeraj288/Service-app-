@@ -59,6 +59,8 @@ group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
 end
+gem 'rack-cors', require: 'rack/cors'
+
 
 group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
@@ -78,5 +80,7 @@ gem 'prawn'
 gem 'prawn-table'
 gem 'wicked_pdf'
 gem 'wkhtmltopdf-binary'
-# gem 'quickbooks-ruby'
-# gem 'oauth2'
+gem "intuit-oauth", "~> 1.0"
+gem 'quickbooks-ruby'
+gem 'dotenv-rails', groups: [:development, :test]
+

@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  shop_id: 1
+  access_token: MyString
+  refresh_token: MyString
+  realm_id: MyString
+  expires_at: 2025-07-20 23:00:28
+
+two:
+  shop_id: 1
+  access_token: MyString
+  refresh_token: MyString
+  realm_id: MyString
+  expires_at: 2025-07-20 23:00:28

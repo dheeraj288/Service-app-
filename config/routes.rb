@@ -52,6 +52,7 @@ Rails.application.routes.draw do
       post '/invoices/generate', to: 'invoices#generate'
       get  '/invoices/:id/download', to: 'invoices#download'
 
+
       # Quotes
       resources :time_tickets, only: [] do
         resources :quotes, only: [:create]
@@ -73,12 +74,17 @@ Rails.application.routes.draw do
         end
       end
       resources :scheduled_repairs, only: [:create] do
-      member do
-        post :assign_technician
-        post :start
-        post :complete
+        member do
+          post :assign_technician
+          post :start
+          post :complete
+        end
       end
-    end
+      # Quickbook
+        get 'quickbooks/connect', to: 'quickbooks_auth#connect'
+        get 'quickbooks/callback', to: 'quickbooks_auth#callback'
+        get 'quickbooks/show_invoice', to: 'quickbooks_auth#show_invoice'
+        post 'quickbooks_auth/create_invoice', to: 'quickbooks_auth#create_invoice'
     end
   end
 end
